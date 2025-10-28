@@ -1,540 +1,273 @@
 # Nof1 AI Agent Copy Trading System
 
+![TypeScript](https://img.shields.io/badge/typescript-5.0%2B-blue)
+![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-green)
+![License](https://img.shields.io/badge/license-MIT-blue)
+
+A command-line tool for tracking [nof1.ai](https://nof1.ai) AI Agent trading signals and automatically executing futures trades. Support **Binance** and **Hyperliquid** with real-time copy trading from 7 AI quantitative agents.
+
 ## ⚡ Quick Start
+
+### Option 1: Binance (Centralized Exchange)
 
 ```bash
 # 1. Install and build
 npm install && npm run build
 
-# 2. Configure environment variables
+# 2. Configure Binance API
 cp .env.example .env
-# Edit .env file, add your Binance API keys (must enable futures trading)
+nano .env  # Add your Binance API keys
 
-# 3. View available AI Agents
-npm start -- agents
+# Set in .env:
+EXCHANGE_TYPE=binance
+BINANCE_API_KEY=your_api_key
+BINANCE_API_SECRET=your_api_secret
+BINANCE_TESTNET=true  # Use testnet for testing
 
-# 4. Test Telegram notifications (optional)
-npm start -- telegram-test
+# 3. Start copy trading
+npm start -- follow deepseek-chat-v3.1 --total-margin 100 --interval 30
+```
 
-# 5. Start copy trading (risk-only mode, no real trades)
-npm start -- follow deepseek-chat-v3.1 --risk-only
+### Option 2: Hyperliquid (Decentralized Exchange)
 
-# 6. Continuous monitoring (check every 30 seconds)
-npm start -- follow gpt-5 --interval 30
+```bash
+# 1. Install and build
+npm install && npm run build
 
-# 7. View profit statistics
-npm start -- profit
+# 2. Configure Hyperliquid wallet
+cp .env.example .env
+nano .env  # Add your Ethereum private key
+
+# Set in .env:
+EXCHANGE_TYPE=hyperliquid
+HYPERLIQUID_PRIVATE_KEY=your_ethereum_private_key
+EXCHANGE_TESTNET=true  # Use testnet for testing
+
+# 3. Get testnet funds (requires mainnet deposit first)
+# Visit: https://app.hyperliquid-testnet.xyz/drip
+
+# 4. Start copy trading
+npm start -- follow deepseek-chat-v3.1 --total-margin 100 --interval 30
 ```
 
 ## 🚀 Features
 
-- **🤖 AI Agent Copy Trading**: Support 7 AI quantitative trading agents (GPT-5, Gemini, DeepSeek, etc.)
-- **📊 Real-time Monitoring**: Configurable polling interval for continuous agent tracking
-- **🔄 Smart Copy Trading**: Auto-detect open, close, switch positions (OID changes), and stop-loss/take-profit
-- **🎯 Profit Target Exit**: Support custom profit targets with automatic position closing when reached
-- **🔄 Auto Refollow**: Optional auto-refollow feature that automatically re-enters after profit target exit
-- **⚡ Futures Trading**: Full support for Binance USDT perpetual futures, 1x-125x leverage
-- **📈 Profit Analysis**: Accurate profit analysis based on real trading data (including fee statistics)
-- **🛡️ Risk Control**: Support `--risk-only` mode for observation without execution
-- **📱 Telegram Notifications**: Real-time Telegram notifications for trade executions and stop-loss/take-profit events
-
-## 📱 Telegram Notifications
-
-Enable Telegram notifications to receive real-time alerts about your trading activities:
-
-### Features
-
-- **🔔 Trade Executions**: Get notified when trades are executed (LONG/SHORT positions)
-- **📊 Rich Formatting**: Beautifully formatted messages with emojis and detailed trade information
-- **🎯 Stop Loss & Take Profit**: Alerts when stop-loss or take-profit orders are set
-- **🔐 Security**: Configure via environment variables for secure access
-
-### Message Format
-
-Messages include:
-- 📈 Trade direction (LONG/SHORT) with emojis
-- 💰 Quantity and price
-- 🆔 Order ID
-- 📊 Order status
-- ⚡ Leverage information
-- 🔒 Margin type (ISOLATED/CROSSED)
-
-### Example Notifications
-
-```
-✅ Trade Executed
-
-📈 LONG BTCUSDT
-💰 Quantity: 1.5
-💵 Price: 50000.00
-🆔 Order ID: 123456
-📊 Status: FILLED
-⚡ Leverage: 10x
-🔒 Isolated
-```
-
-```
-🎯 Take Profit Order Set
-
-📊 Symbol: BTCUSDT
-💵 Price: 55000.00
-🆔 Order ID: tp123
-```
+- **🔄 Multi-Exchange Support**: Binance and Hyperliquid (more coming soon)
+- **🤖 7 AI Agents**: GPT-5, Gemini, DeepSeek, Claude, Grok, Qwen, and more
+- **📊 Real-time Monitoring**: Configurable polling interval
+- **🎯 Smart Copy Trading**: Auto-detect open/close/switch positions
+- **💰 Profit Target**: Auto close at custom profit percentage
+- **⚡ Leverage Trading**: 1x-125x leverage support
+- **🛡️ Risk Control**: `--risk-only` mode for observation
+- **📱 Telegram Alerts**: Real-time trade notifications
 
 ## 🤖 Supported AI Agents
 
-| Agent Name |
-|----------|
-| **gpt-5** |
-| **gemini-2.5-pro** |
-| **deepseek-chat-v3.1** |
-| **claude-sonnet-4-5** |
-| **buynhold_btc** |
-| **grok-4** |
-| **qwen3-max** |
+| Agent | Description |
+|-------|-------------|
+| `gpt-5` | OpenAI GPT-5 trading agent |
+| `gemini-2.5-pro` | Google Gemini Pro agent |
+| `deepseek-chat-v3.1` | DeepSeek V3.1 agent |
+| `claude-sonnet-4-5` | Anthropic Claude agent |
+| `grok-4` | xAI Grok agent |
+| `qwen3-max` | Alibaba Qwen agent |
+| `buynhold_btc` | Bitcoin buy & hold strategy |
 
 ## ⚙️ Configuration
 
-### 1. Binance API Key Configuration (Important)
-
-This system uses **Binance Futures Trading API**, permissions must be configured correctly:
-
-#### Create API Key
-1. Login to [Binance](https://www.binance.com/) → [API Management](https://www.binance.com/en/my/settings/api-management)
-2. Create new API key, complete security verification
-
-#### Configure Permissions (Critical)
-- ✅ **Enable Futures** - Enable futures trading (Required)
-- ✅ **Enable Reading** - Enable read permission (Required)
-- ❌ **Enable Withdrawals** - Not needed
-
-#### Testnet Environment (Recommended for Beginners)
-1. Visit [Binance Testnet](https://testnet.binancefuture.com/)
-2. Create testnet API key
-3. Set in `.env`:
-   ```env
-   BINANCE_TESTNET=true
-   BINANCE_API_KEY=testnet_api_key
-   BINANCE_API_SECRET=testnet_secret_key
-   ```
-
-### 2. Telegram Notification Setup (Optional)
-
-Set up Telegram notifications to receive real-time trading signals and alerts:
-
-1. **Create a Telegram Bot**:
-   - Open Telegram and search for [@BotFather](https://t.me/BotFather)
-   - Send `/newbot` command and follow the instructions
-   - Save the bot token you receive
-
-2. **Get Your Chat ID**:
-   - Search for your bot in Telegram
-   - Send any message to your bot
-   - Visit `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
-   - Look for `"chat":{"id":<YOUR_CHAT_ID>}`
-
-3. **Configure Environment Variables**:
-   ```env
-   # Telegram Configuration (Optional)
-   TELEGRAM_ENABLED=true
-   TELEGRAM_API_TOKEN=your_telegram_bot_token
-   TELEGRAM_CHAT_ID=your_telegram_chat_id
-   ```
-
-4. **Test Telegram Connection**:
-   ```bash
-   npm start -- telegram-test
-   ```
-
-### 3. Environment Variables
+### Environment Variables
 
 ```env
-# Binance API Configuration - Must support futures trading
-BINANCE_API_KEY=your_binance_api_key_here
-BINANCE_API_SECRET=your_binance_api_secret_here
-BINANCE_TESTNET=true  # true=testnet, false=mainnet
+# Exchange Selection
+EXCHANGE_TYPE=hyperliquid  # or 'binance'
+EXCHANGE_TESTNET=true      # true=testnet, false=mainnet
 
-# Trading Configuration
+# Binance Configuration
+BINANCE_API_KEY=your_api_key
+BINANCE_API_SECRET=your_api_secret
+
+# Hyperliquid Configuration
+HYPERLIQUID_PRIVATE_KEY=your_ethereum_private_key
+# HYPERLIQUID_VAULT_ADDRESS=0x...  # Optional, for vault trading
+
+# Trading Parameters
 MAX_POSITION_SIZE=1000
 DEFAULT_LEVERAGE=10
 RISK_PERCENTAGE=2.0
 
-# Telegram Configuration (Optional)
-TELEGRAM_ENABLED=true
-TELEGRAM_API_TOKEN=your_telegram_bot_token
-TELEGRAM_CHAT_ID=your_telegram_chat_id
+# Telegram Notifications (Optional)
+TELEGRAM_ENABLED=false
+TELEGRAM_API_TOKEN=your_bot_token
+TELEGRAM_CHAT_ID=your_chat_id
 ```
+
+### Binance Setup
+
+1. **Create API Key**: [Binance API Management](https://www.binance.com/en/my/settings/api-management)
+2. **Enable Permissions**:
+   - ✅ Enable Futures
+   - ✅ Enable Reading
+   - ❌ No withdrawals needed
+3. **Testnet** (Recommended): [testnet.binancefuture.com](https://testnet.binancefuture.com/)
+
+### Hyperliquid Setup
+
+1. **Prepare Wallet**:
+   ```bash
+   # Generate new wallet (or use existing)
+   node -e "const ethers = require('ethers'); const w = ethers.Wallet.createRandom(); console.log('Address:', w.address, '\nPrivate Key:', w.privateKey);"
+   ```
+
+2. **Testnet Setup**:
+   - Visit [Hyperliquid Mainnet](https://app.hyperliquid.xyz/) and make a deposit
+   - Then claim testnet tokens at [testnet faucet](https://app.hyperliquid-testnet.xyz/drip)
+
+3. **Mainnet Setup**:
+   - Deposit USDC to your wallet on Arbitrum
+   - Bridge to Hyperliquid via the web app
 
 ## 📖 Usage
 
 ### Core Commands
 
-#### 1. View Available AI Agents
 ```bash
+# View available AI agents
 npm start -- agents
-```
 
-#### 2. Copy Trade AI Agent (Core Feature)
+# Copy trade with risk assessment only (no execution)
+npm start -- follow deepseek-chat-v3.1 --risk-only
 
-**Basic Usage**:
-```bash
-# Single execution
-npm start -- follow deepseek-chat-v3.1
-
-# Continuous monitoring (poll every 30 seconds)
+# Continuous monitoring (every 30 seconds)
 npm start -- follow gpt-5 --interval 30
 
-# Risk control mode (observe only, no execution)
-npm start -- follow claude-sonnet-4-5 --risk-only
-```
+# Set total margin
+npm start -- follow deepseek-chat-v3.1 --total-margin 100
 
-**Advanced Options**:
-```bash
-# Set total margin (default 10 USDT)
-npm start -- follow gpt-5 --total-margin 5000
-
-# Set price tolerance (default 1.0%)
-npm start -- follow deepseek-chat-v3.1 --price-tolerance 1.0
-
-# Profit target exit (auto close when 30% profit reached)
+# Auto exit at 30% profit
 npm start -- follow gpt-5 --profit 30
 
-# Profit target exit + auto refollow
-npm start -- follow deepseek-chat-v3.1 --profit 30 --auto-refollow
+# Full configuration
+npm start -- follow deepseek-chat-v3.1 \
+  --total-margin 100 \
+  --interval 30 \
+  --profit 30 \
+  --price-tolerance 5
 
-# Combined usage
-npm start -- follow gpt-5 --interval 30 --total-margin 2000 --profit 25 --auto-refollow
-```
-
-**Command Options**:
-- `-r, --risk-only`: Assess only, no execution (safe mode)
-- `-i, --interval <seconds>`: Polling interval in seconds, default 30
-- `-t, --price-tolerance <percentage>`: Price tolerance percentage, default 1.0%
-- `-m, --total-margin <amount>`: Total margin (USDT), default 10
-- `--profit <percentage>`: Profit target percentage, auto close when reached
-- `--auto-refollow`: Auto refollow after profit target exit (disabled by default)
-
-#### 3. Profit Statistics Analysis
-```bash
-# Analyze total profit since copy trading started (includes unrealized P&L by default)
+# View profit statistics
 npm start -- profit
-
-# Analyze profit for specified time range
-npm start -- profit --since 7d        # Last 7 days
-npm start -- profit --since 2024-01-01 # Since January 1, 2024
-npm start -- profit --since 1704067200000 # Using timestamp
-
-# Analyze specific trading pair
+npm start -- profit --since 7d
 npm start -- profit --pair BTCUSDT
 
-# JSON format output
-npm start -- profit --format json
-
-# Force refresh cached data
-npm start -- profit --refresh
-
-# Include current positions unrealized P&L (default behavior)
-npm start -- profit
-
-# Show only current positions unrealized P&L (without realized trades)
-npm start -- profit --unrealized-only
-
-# Exclude unrealized P&L from analysis (realized trades only)
-npm start -- profit --exclude-unrealized
-```
-
-**Profit Command Options**:
-- `-s, --since <time>`: Time filter, supports "7d" (last 7 days), "2024-01-01" (specific date), timestamp format. If not specified, uses order-history.json creation time
-- `-p, --pair <symbol>`: Specific trading pair (e.g., BTCUSDT)
-- `--group-by <type>`: Group by method: symbol (by trading pair) or all (all)
-- `--format <type>`: Output format: table (table) or json (JSON)
-- `--refresh`: Force refresh cache to get latest data
-- `--exclude-unrealized`: Exclude current positions unrealized P&L from analysis (realized trades only)
-- `--unrealized-only`: Show only current positions unrealized P&L
-
-**Output Statistics**:
-- **Basic Statistics**: Total trades, realized profit/loss (including fees), win rate, average profit/loss
-- **Unrealized P&L**: Current positions count, total unrealized P&L, detailed position info (included by default, excluded when using --exclude-unrealized)
-- **Total P&L**: Complete profit situation including realized + unrealized P&L
-- **Fee Analysis**: Total fee expenses, average fee per trade
-- **Risk Metrics**: Maximum single profit, maximum single loss, unrealized P&L risk warnings
-- **Grouped Statistics**: Detailed profit analysis grouped by trading pair
-
-#### 4. System Status Check
-```bash
+# Check system status
 npm start -- status
 ```
 
-#### 5. Telegram Notification Test
-```bash
-# Test Telegram bot connection and send test message
-npm start -- telegram-test
-```
+### Command Options
 
-### Copy Trading Strategy
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--risk-only` | Observe only, no execution | false |
+| `--interval <seconds>` | Polling interval | 30 |
+| `--total-margin <amount>` | Total margin in USDT | 10 |
+| `--profit <percentage>` | Auto exit profit target | - |
+| `--price-tolerance <percent>` | Price deviation tolerance | 1.0 |
+| `--auto-refollow` | Re-enter after profit exit | false |
 
-System automatically detects 4 types of trading signals:
+## 🔄 Trading Signals
 
-1. **📈 New Position (ENTER)** - Auto copy when agent opens new position
-2. **📉 Close Position (EXIT)** - Auto copy when agent closes position
-3. **🔄 Switch Position (OID Change)** - Close old position then open new when entry_oid changes
-4. **🎯 Stop Loss/Take Profit** - Auto close when price reaches profit_target or stop_loss
+The system automatically detects:
 
-### 🎯 Profit Target Exit and Auto Refollow
+1. **📈 New Position** - Copy when agent opens new position
+2. **📉 Close Position** - Copy when agent closes position
+3. **🔄 Switch Position** - Close old and open new (OID change)
+4. **🎯 Stop Loss/Take Profit** - Auto exit at target prices
 
-#### Profit Target Exit
-Set custom profit targets to automatically close positions when specified profit percentage is reached:
+## 🌐 Server Deployment
 
-```bash
-# Auto close when profit reaches 30%
-npm start -- follow gpt-5 --profit 30
-
-# Auto close when profit reaches 50%
-npm start -- follow deepseek-chat-v3.1 --profit 50
-```
-
-**Features**:
-- ✅ Real-time monitoring of profit percentage for each position
-- ✅ Immediate market order execution when target is reached
-- ✅ Support for both long and short position profit calculations
-- ✅ Complete profit exit event recording
-
-#### Auto Refollow
-Build upon profit exit with optional auto-refollow functionality:
+For 24/7 operation, deploy to a server:
 
 ```bash
-# Auto refollow after 30% profit exit
-npm start -- follow gpt-5 --profit 30 --auto-refollow
+# Install PM2
+npm install -g pm2
 
-# Combined: Continuous monitoring + Profit target + Auto refollow
-npm start -- follow deepseek-chat-v3.1 --interval 30 --profit 25 --auto-refollow
+# Start service
+pm2 start npm --name "nof1-trader" -- start -- follow deepseek-chat-v3.1 \
+  --total-margin 100 \
+  --interval 30 \
+  --profit 30
+
+# Save and auto-restart on reboot
+pm2 save
+pm2 startup
+
+# Monitor
+pm2 logs nof1-trader
+pm2 monit
 ```
 
-**Workflow**:
-1. 🔍 Detect position profit reaches target (e.g., 30%)
-2. 💰 Execute immediate market order close to lock profit
-3. 📝 Record profit exit event to history
-4. 🔄 Reset order processing status for that symbol
-5. ⏭️ Next polling cycle detects OID change and auto refollows
+See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for complete server setup instructions.
 
-**Safety Features**:
-- 🛡️ Price tolerance check before refollowing
-- 📊 Preserve agent's original stop-loss/take-profit plan
-- 🔄 Optional feature, disabled by default to avoid unintended impact
-- 📝 Complete operation logging
-
-**Usage Recommendations**:
-- 🎯 Conservative: `--profit 20` (20% profit exit)
-- ⚖️ Balanced: `--profit 30 --auto-refollow` (30% profit exit with refollow)
-- 🚀 Aggressive: `--profit 50 --auto-refollow` (50% profit exit with refollow)
-
-### Usage Examples
-
-**Beginner Guide**:
-```bash
-# 1. Check system configuration
-npm start -- status
-
-# 2. View available agents
-npm start -- agents
-
-# 3. Test Telegram notifications (if configured)
-npm start -- telegram-test
-
-# 4. Risk control mode test
-npm start -- follow buynhold_btc --risk-only
-
-# 5. Single copy trade test
-npm start -- follow deepseek-chat-v3.1
-
-# 6. View profit statistics
-npm start -- profit
-```
-
-**Continuous Monitoring**:
-```bash
-# Check every 30 seconds
-npm start -- follow gpt-5 --interval 30
-
-# Multi-agent parallel monitoring (different terminals)
-npm start -- follow gpt-5 --interval 30
-npm start -- follow deepseek-chat-v3.1 --interval 45
-npm start -- follow claude-sonnet-4-5 --interval 60 --risk-only
-```
-
-**Profit Analysis**:
-```bash
-# View overall profit situation (includes unrealized P&L by default)
-npm start -- profit
-
-# View only realized profit (exclude unrealized P&L)
-npm start -- profit --exclude-unrealized
-
-# View only current positions unrealized P&L
-npm start -- profit --unrealized-only
-
-# Analyze different time ranges
-npm start -- profit --since 1d      # Last 1 day
-npm start -- profit --since 7d      # Last 1 week
-npm start -- profit --since 30d     # Last 1 month
-
-# Analyze by trading pair
-npm start -- profit --pair BTCUSDT --since 7d
-npm start -- profit --pair ETHUSDT --format json
-
-# JSON output with unrealized P&L (default)
-npm start -- profit --format json
-
-# JSON output for unrealized P&L only
-npm start -- profit --unrealized-only --format json
-```
-
-## 📊 Architecture Overview
+## 📊 Architecture
 
 ```
-src/
-├── commands/               # Command handlers
-│   ├── agents.ts          # Get AI agent list
-│   ├── follow.ts          # Copy trade command (core)
-│   ├── profit.ts          # Profit statistics analysis
-│   ├── status.ts          # System status check
-│   └── telegram.ts        # Telegram notification test
-├── services/              # Core services
-│   ├── api-client.ts      # Nof1 API client
-│   ├── binance-service.ts # Binance API integration
-│   ├── trading-executor.ts # Trade execution engine
-│   ├── position-manager.ts # Position management
-│   ├── profit-calculator.ts # Profit calculation engine
-│   ├── trade-history-service.ts # Trade history service
-│   ├── order-history-manager.ts # Order history management
-│   ├── futures-capital-manager.ts # Futures capital management
-│   └── telegram-service.ts # Telegram notification service
-├── scripts/
-│   └── analyze-api.ts     # API analysis engine (copy trading strategy)
-├── types/                 # TypeScript type definitions
-├── utils/                 # Utility functions
-└── index.ts               # CLI entry point
+User Command
+    ↓
+Follow Handler
+    ↓
+ApiAnalyzer (fetch nof1.ai signals)
+    ↓
+ExchangeFactory (Binance/Hyperliquid)
+    ↓
+TradingExecutor
+    ↓
+Exchange API → Order Executed
+    ↓
+Telegram Notification (optional)
 ```
 
-**Core Flow**:
-```
-Copy Trading Flow:
-User Command → follow handler → ApiAnalyzer analyzes agent signals
-         ↓
-    Detect trading actions (open/close/switch/stop-loss)
-         ↓
-    Generate FollowPlan → TradingExecutor executes
-         ↓
-    BinanceService → Binance API → Trade completed
-         ↓
-    TelegramService sends notification (if enabled)
+**Key Components**:
+- `ExchangeFactory`: Multi-exchange abstraction
+- `HyperliquidService`: Hyperliquid DEX integration with EIP-712 signing
+- `BinanceService`: Binance Futures API integration
+- `FollowService`: Copy trading logic and position management
+- `TradingExecutor`: Order execution engine
 
-Profit Analysis Flow:
-User Command → profit handler → TradeHistoryService fetches historical trades
-         ↓
-    ProfitCalculator calculates profit (based on realizedPnl and fees)
-         ↓
-    Generate statistics report (basic stats, grouped stats, risk metrics)
-         ↓
-    Output results (table/JSON format)
+## ⚠️ Risk Warning
 
-Telegram Notification Flow:
-Trading Executor → Trade/Order event
-         ↓
-    TelegramService.formatTradeMessage()
-         ↓
-    Send to Telegram API
-         ↓
-    User receives notification
-```
+- **Futures trading is high-risk** and can lead to rapid losses
+- **Test first**: Always use testnet before mainnet
+- **Start small**: Begin with minimal capital
+- **No guarantees**: AI agents do not guarantee profits
+- **Own risk**: You are responsible for all trading decisions
 
-## ⚠️ Important Notes
+## 🔒 Security
 
-### Risk Warning
+- ✅ Never commit `.env` file (already in `.gitignore`)
+- ✅ Use API keys with minimal required permissions
+- ✅ Set IP whitelist for Binance API
+- ✅ Use dedicated wallets for Hyperliquid
+- ✅ Regularly rotate credentials
 
-- **⚠️ Futures Trading Risk**: Futures trading uses leverage, may lead to rapid losses, use with caution
-- **🧪 Test Environment**: Strongly recommend testing on Binance Testnet first
-- **📊 Risk Management**: Recommend leverage ≤10x, use dedicated trading account
-- **💡 Risk Control Mode**: Beginners should use `--risk-only` mode first
-- **📈 Copy Trading Risk**: AI Agent strategies do not guarantee profit, assess risks yourself
+## 📚 Documentation
 
-### Security Recommendations
-
-- Set IP whitelist to restrict access
-- Regularly rotate API keys
-- Never hardcode keys in code
-- Avoid investing funds you cannot afford to lose
-
-## 🔍 Troubleshooting
-
-### Common Issues
-
-**1. Insufficient Futures Trading Permission**
-```
-Error: Insufficient permissions
-```
-- ✅ Ensure **Enable Futures** permission is enabled in Binance API management
-- ✅ Ensure **Enable Reading** permission is enabled
-- Recreate API key with correct permissions
-
-**2. Agent Not Found**
-```
-Error: Agent xxx not found
-```
-- Use `npm start -- agents` to view available agent list
-- Confirm agent name spelling is correct (case-sensitive)
-
-**3. Network Connection Issues**
-```
-Error: timeout
-```
-- Check network connection and firewall settings
-- May need VPN to access Binance API in mainland China
-
-**4. API Key Error**
-```
-Error: Invalid API Key
-```
-- Check if API key in `.env` file is correct
-- Confirm API key has not expired
-- Verify complete key is copied (no extra spaces)
-
-**5. Telegram Notification Issues**
-```
-Error: Failed to send Telegram message
-```
-- ✅ Check if `TELEGRAM_ENABLED=true` in `.env` file
-- ✅ Verify Telegram bot token is correct (from @BotFather)
-- ✅ Verify chat ID is correct (get from bot API)
-- ✅ Test with `npm start -- telegram-test`
-- ✅ Ensure bot has not been blocked or deleted
-- ✅ Check internet connection for Telegram API access
+- [Deployment Guide](DEPLOYMENT_GUIDE.md) - Complete server setup
+- [Hyperliquid Integration](docs/HYPERLIQUID_INTEGRATION.md) - Technical details
+- [Hyperliquid Setup](docs/hyperliquid-setup.md) - User guide
+- [Quick Start](HYPERLIQUID_QUICKSTART.md) - 5-minute guide
 
 ## 🔧 Development
 
 ```bash
-# Run tests
-npm test
-
-# Development mode (auto-restart)
-npm run dev
-
-# Build
-npm run build
-
-# Code check
-npm run lint
+npm test          # Run tests
+npm run build     # Build TypeScript
+npm run dev       # Development mode
+npm run lint      # Code linting
 ```
-
-## 📚 More Documentation
-
-- **[Detailed Copy Trading Strategy](./docs/follow-strategy.md)** - Complete copy trading strategy and risk assessment
-- **[Quick Reference](./docs/quick-reference.md)** - Quick command reference
 
 ## 📄 License
 
-MIT License - See [LICENSE](LICENSE) file for details
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Disclaimer**: This tool is for learning and testing purposes only. Actual trading involves risk of capital loss, use with caution and comply with relevant laws and regulations.
+**⚠️ Disclaimer**: This tool is for educational purposes only. Trading involves substantial risk of loss. Use at your own risk and comply with all applicable laws and regulations.
