@@ -33,6 +33,21 @@ async function processFollowPlan(
 
   if (!riskAssessment.isValid) {
     console.log(`   ❌ Risk assessment: FAILED - Trade skipped`);
+
+    // 记录跳过的订单到历史，避免重复显示 NEW POSITION
+    if (plan.position && plan.position.entry_oid && services.orderHistoryManager) {
+      const skipReason = riskAssessment.warnings.join('; ');
+      services.orderHistoryManager.addSkippedOrder(
+        plan.position.entry_oid,
+        plan.symbol,
+        plan.agent || 'unknown',
+        plan.side,
+        plan.quantity,
+        skipReason,
+        plan.entryPrice
+      );
+    }
+
     return { executed: false, skipped: true };
   }
 

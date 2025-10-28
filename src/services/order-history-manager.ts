@@ -11,6 +11,8 @@ export interface ProcessedOrder {
   side: 'BUY' | 'SELL';
   quantity: number;
   price?: number;
+  status?: 'executed' | 'skipped'; // 订单状态：已执行 或 已跳过
+  skipReason?: string; // 跳过原因（如：price_tolerance_exceeded, insufficient_margin 等）
 }
 
 export interface ProfitExitRecord {
@@ -168,13 +170,50 @@ export class OrderHistoryManager {
       orderId,
       side,
       quantity,
-      price
+      price,
+      status: 'executed' // 标记为已执行
     };
 
     this.historyData.processedOrders.push(processedOrder);
     this.saveOrderHistory();
 
     logInfo(`✅ Saved processed order: ${symbol} ${side} ${quantity} (OID: ${entryOid})`);
+  }
+
+  /**
+   * 记录跳过的订单（因风险评估失败等原因未执行）
+   */
+  addSkippedOrder(
+    entryOid: number,
+    symbol: string,
+    agent: string,
+    side: 'BUY' | 'SELL',
+    quantity: number,
+    skipReason: string,
+    price?: number
+  ): void {
+    // 检查是否已经存在（包括已执行或已跳过的）
+    if (this.isOrderProcessed(entryOid, symbol)) {
+      logDebug(`⚠️ Order ${symbol} (OID: ${entryOid}) already exists in history`);
+      return;
+    }
+
+    const skippedOrder: ProcessedOrder = {
+      entryOid,
+      symbol,
+      agent,
+      timestamp: Date.now(),
+      side,
+      quantity,
+      price,
+      status: 'skipped',
+      skipReason
+    };
+
+    this.historyData.processedOrders.push(skippedOrder);
+    this.saveOrderHistory();
+
+    logInfo(`⏭️  Saved skipped order: ${symbol} ${side} ${quantity} (OID: ${entryOid}) - Reason: ${skipReason}`);
   }
 
   /**
