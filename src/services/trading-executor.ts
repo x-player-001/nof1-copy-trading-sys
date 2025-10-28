@@ -1,7 +1,9 @@
 import { TradingPlan } from "../types/trading";
 import { TelegramService } from "./telegram-service";
-import { BinanceService, StopLossOrder, TakeProfitOrder, OrderResponse } from "./binance-service";
+import { BinanceService, StopLossOrder, TakeProfitOrder, OrderResponse as BinanceOrderResponse } from "./binance-service";
 import { ConfigManager } from "./config-manager";
+import { IExchangeService, OrderResponse } from "./exchange-service.interface";
+import { ExchangeFactory } from "./exchange-factory";
 
 export interface ExecutionResult {
   success: boolean;
@@ -17,7 +19,8 @@ export interface StopOrderExecutionResult extends ExecutionResult {
 }
 
 export class TradingExecutor {
-  private binanceService: BinanceService;
+  private exchangeService: IExchangeService;
+  private binanceService!: BinanceService; // Keep for backward compatibility
   private testnet: boolean;
   private telegramService?: TelegramService;
   private configManager: ConfigManager;
@@ -26,14 +29,22 @@ export class TradingExecutor {
   constructor(apiKey?: string, apiSecret?: string, testnet?: boolean, configManager?: ConfigManager) {
     // 如果没有明确指定，则从环境变量读取
     if (testnet === undefined) {
-      testnet = process.env.BINANCE_TESTNET === 'true';
+      testnet = process.env.BINANCE_TESTNET === 'true' || process.env.EXCHANGE_TESTNET === 'true';
     }
     this.testnet = testnet;
-    this.binanceService = new BinanceService(
-      apiKey || process.env.BINANCE_API_KEY || "",
-      apiSecret || process.env.BINANCE_API_SECRET || "",
-      testnet
-    );
+
+    // 使用 ExchangeFactory 创建交易所服务（支持 Binance 和 Hyperliquid）
+    if (apiKey && apiSecret) {
+      // 如果提供了 API Key，说明是显式指定 Binance
+      const service = new BinanceService(apiKey, apiSecret, testnet);
+      this.exchangeService = service as any as IExchangeService;
+      this.binanceService = service;
+    } else {
+      // 否则从环境变量读取（可能是 Binance 或 Hyperliquid）
+      this.exchangeService = ExchangeFactory.createFromEnv();
+      this.binanceService = this.exchangeService as any as BinanceService; // For backward compatibility
+    }
+
     this.configManager = configManager || new ConfigManager();
     if (!configManager) {
       this.configManager.loadFromEnvironment();
@@ -45,7 +56,7 @@ export class TradingExecutor {
    */
   async validateConnection(): Promise<boolean> {
     try {
-      const serverTime = await this.binanceService.getServerTime();
+      const serverTime = await this.exchangeService.getServerTime();
       console.log(`✅ Connected to Binance API (Server time: ${new Date(serverTime)})`);
       return true;
     } catch (error) {
@@ -59,7 +70,7 @@ export class TradingExecutor {
    */
   async getAccountInfo() {
     try {
-      return await this.binanceService.getAccountInfo();
+      return await this.exchangeService.getAccountInfo();
     } catch (error) {
       console.error(`❌ Failed to get account info: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
@@ -71,7 +82,7 @@ export class TradingExecutor {
    */
   async getPositions() {
     try {
-      return await this.binanceService.getPositions();
+      return await this.exchangeService.getPositions();
     } catch (error) {
       console.error(`❌ Failed to get positions: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
@@ -93,16 +104,17 @@ export class TradingExecutor {
 
       // 获取账户信息检查余额
       try {
-        const accountInfo = await this.binanceService.getAccountInfo();
+        const accountInfo = await this.exchangeService.getAccountInfo();
         const availableMargin = parseFloat(accountInfo.availableBalance);
-        const totalWalletBalance = parseFloat(accountInfo.totalWalletBalance);
+        const totalWalletBalance = parseFloat(accountInfo.totalWalletBalance || accountInfo.totalBalance);
 
 
         // 获取当前市场价格来计算所需保证金
         let currentPrice = 0;
         try {
-          const ticker = await this.binanceService.get24hrTicker(tradingPlan.symbol);
-          currentPrice = parseFloat(ticker.lastPrice);
+          const ticker = await this.exchangeService.get24hrTicker(tradingPlan.symbol);
+          const tickerData = Array.isArray(ticker) ? ticker[0] : ticker;
+          currentPrice = parseFloat(tickerData.lastPrice);
         } catch (priceError) {
           console.warn(`⚠️ Failed to get current price for ${tradingPlan.symbol}: ${priceError instanceof Error ? priceError.message : 'Unknown error'}`);
           // 使用保守估计价格
@@ -110,7 +122,7 @@ export class TradingExecutor {
         }
 
         // 检查是否是平仓操作(减仓)
-        const positions = await this.binanceService.getPositions();
+        const positions = await this.exchangeService.getPositions();
         const currentPosition = positions.find(p => p.symbol === tradingPlan.symbol);
         const currentPositionAmt = currentPosition ? parseFloat(currentPosition.positionAmt) : 0;
         
@@ -193,13 +205,13 @@ export class TradingExecutor {
         // 继续执行，但记录警告
       }
 
-      // 转换为币安订单格式
-      const binanceOrder = this.binanceService.convertToBinanceOrder(tradingPlan);
+      // 转换为订单格式（Binance 特定方法）
+      const binanceOrder = (this.binanceService as any).convertToBinanceOrder(tradingPlan);
 
       // 设置保证金模式
       if (tradingPlan.marginType) {
         try {
-          await this.binanceService.setMarginType(tradingPlan.symbol, tradingPlan.marginType);
+          await this.exchangeService.setMarginType(tradingPlan.symbol, tradingPlan.marginType);
           console.log(`✅ Margin type set to ${tradingPlan.marginType} for ${tradingPlan.symbol}`);
         } catch (marginTypeError) {
           // 如果已经是相同模式或在Multi-Assets模式下,API会返回错误,这是正常的,可以忽略
@@ -217,7 +229,7 @@ export class TradingExecutor {
 
       // 设置杠杆（如果需要）
       try {
-        await this.binanceService.setLeverage(tradingPlan.symbol, tradingPlan.leverage);
+        await this.exchangeService.setLeverage(tradingPlan.symbol, tradingPlan.leverage);
         console.log(`✅ Leverage set to ${tradingPlan.leverage}x for ${tradingPlan.symbol}`);
       } catch (leverageError) {
         console.warn(`⚠️ Failed to set leverage: ${leverageError instanceof Error ? leverageError.message : 'Unknown error'}`);
@@ -225,7 +237,7 @@ export class TradingExecutor {
       }
 
       // 执行主订单
-      const orderResponse = await this.binanceService.placeOrder(binanceOrder);
+      const orderResponse = await this.exchangeService.placeOrder(binanceOrder);
 
       console.log(`✅ Order executed successfully:`);
       console.log(`   Order ID: ${orderResponse.orderId}`);
@@ -281,8 +293,8 @@ export class TradingExecutor {
         return mainOrderResult;
       }
 
-      // 2. 创建止盈止损订单
-      const stopOrders = this.binanceService.createStopOrdersFromPosition(
+      // 2. 创建止盈止损订单（Binance 特定方法）
+      const stopOrders = (this.binanceService as any).createStopOrdersFromPosition(
         position,
         tradingPlan.side
       );
@@ -297,8 +309,8 @@ export class TradingExecutor {
         try {
           console.log(`📈 Placing Take Profit order at: ${stopOrders.takeProfitOrder.stopPrice}`);
           // 使用实际执行的交易数量，而不是原始position数量
-          const actualQuantity = this.binanceService.formatQuantity(tradingPlan.quantity, tradingPlan.symbol);
-          const tpOrderResponse = await this.binanceService.placeOrder({
+          const actualQuantity = this.exchangeService.formatQuantity(tradingPlan.quantity, tradingPlan.symbol);
+          const tpOrderResponse = await this.exchangeService.placeOrder({
             symbol: stopOrders.takeProfitOrder.symbol,
             side: stopOrders.takeProfitOrder.side,
             type: stopOrders.takeProfitOrder.type,
@@ -330,8 +342,8 @@ export class TradingExecutor {
         try {
           console.log(`📉 Placing Stop Loss order at: ${stopOrders.stopLossOrder.stopPrice}`);
           // 使用实际执行的交易数量，而不是原始position数量
-          const actualQuantity = this.binanceService.formatQuantity(tradingPlan.quantity, tradingPlan.symbol);
-          const slOrderResponse = await this.binanceService.placeOrder({
+          const actualQuantity = this.exchangeService.formatQuantity(tradingPlan.quantity, tradingPlan.symbol);
+          const slOrderResponse = await this.exchangeService.placeOrder({
             symbol: stopOrders.stopLossOrder.symbol,
             side: stopOrders.stopLossOrder.side,
             type: stopOrders.stopLossOrder.type,
@@ -446,7 +458,7 @@ export class TradingExecutor {
    */
   async getOrderStatus(symbol: string, orderId: string): Promise<OrderResponse | null> {
     try {
-      return await this.binanceService.getOrderStatus(symbol, parseInt(orderId));
+      return await this.exchangeService.getOrderStatus(symbol, parseInt(orderId));
     } catch (error) {
       console.error(`❌ Failed to get order status: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return null;
@@ -458,7 +470,7 @@ export class TradingExecutor {
    */
   async getOpenOrders(symbol?: string): Promise<OrderResponse[]> {
     try {
-      return await this.binanceService.getOpenOrders(symbol);
+      return await this.exchangeService.getOpenOrders(symbol);
     } catch (error) {
       console.error(`❌ Failed to get open orders: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return [];
@@ -475,7 +487,7 @@ export class TradingExecutor {
         console.warn(`⚠️ Cannot get order details without symbol for order ${orderId}`);
         return null;
       }
-      return await this.binanceService.getOrderStatus(symbol, parseInt(orderId));
+      return await this.exchangeService.getOrderStatus(symbol, parseInt(orderId));
     } catch (error) {
       console.error(`❌ Failed to get order details for ${orderId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return null;
@@ -487,7 +499,7 @@ export class TradingExecutor {
    */
   async cancelAllOrders(symbol: string): Promise<boolean> {
     try {
-      await this.binanceService.cancelAllOrders(symbol);
+      await this.exchangeService.cancelAllOrders(symbol);
       console.log(`✅ All orders cancelled for ${symbol}`);
       return true;
     } catch (error) {
@@ -500,8 +512,8 @@ export class TradingExecutor {
    * 清理资源，关闭所有连接
    */
   destroy(): void {
-    if (this.binanceService) {
-      this.binanceService.destroy();
+    if (this.exchangeService) {
+      this.exchangeService.destroy();
     }
   }
 }

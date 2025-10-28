@@ -15,6 +15,8 @@ import { FollowService } from "../services/follow-service";
 import { OrderHistoryManager } from "../services/order-history-manager";
 import { TradingExecutor } from "../services/trading-executor";
 import { BinanceService } from "../services/binance-service";
+import { IExchangeService } from "../services/exchange-service.interface";
+import { ExchangeFactory } from "../services/exchange-factory";
 import { RiskManager } from "../services/risk-manager";
 import { FuturesCapitalManager } from "../services/futures-capital-manager";
 import {
@@ -42,7 +44,8 @@ export class ApiAnalyzer {
   private positionManager: PositionManager;
   private followService: FollowService;
   private configManager: ConfigManager;
-  private binanceService: BinanceService;
+  private exchangeService: IExchangeService;
+  private binanceService: BinanceService; // Keep for backward compatibility
   private tradingExecutor: TradingExecutor;
   private orderHistoryManager: OrderHistoryManager;
 
@@ -64,11 +67,9 @@ export class ApiAnalyzer {
     // 验证环境变量
     this.validateEnvironment();
 
-    // 初始化服务
-    this.binanceService = new BinanceService(
-      process.env[ENV_VARS.BINANCE_API_KEY] || "",
-      process.env[ENV_VARS.BINANCE_API_SECRET] || ""
-    );
+    // 初始化服务（使用 ExchangeFactory 支持多交易所）
+    this.exchangeService = ExchangeFactory.createFromEnv();
+    this.binanceService = this.exchangeService as any as BinanceService; // For backward compatibility
     this.tradingExecutor = new TradingExecutor();
     this.orderHistoryManager = new OrderHistoryManager();
     const riskManager = new RiskManager(this.configManager);

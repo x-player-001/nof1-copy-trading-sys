@@ -103,6 +103,8 @@ export interface UserTrade {
 }
 
 export class BinanceService {
+  public readonly exchangeName = 'Binance';
+
   private apiKey: string;
   private apiSecret: string;
   private baseUrl: string;

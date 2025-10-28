@@ -1,80 +1,89 @@
-# Nof1 AI Agent 跟单交易系统
+# Nof1 AI Agent Copy Trading System
 
-中文 | [English](./README_EN.md)
-
-![TypeScript](https://img.shields.io/badge/typescript-5.0%2B-blue)
-![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-green)
-![License](https://img.shields.io/badge/license-MIT-blue)
-
-一个用于跟踪 nof1.ai AI Agent 交易信号并自动执行 Binance 合约交易的命令行工具。支持7个AI量化Agent的实时跟单，自动识别开仓、平仓、换仓和止盈止损信号。
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/F1F11HO935)
-
-<img width="220" height="286" alt="b7c0054cf81fe6735d60ab5de48243e5" src="https://github.com/user-attachments/assets/4628befa-96b4-42dd-af42-4724a9a28336" />
-
-## 🏢 代部署服务
-
-**不想自己部署？我们提供代部署服务！**
-
-### 服务器部署的优势
-- 🖥️ **无需本地电脑运行** - 服务器24小时自动运行，无需保持自己的电脑开着
-- 🌍 **无需翻墙** - 推荐的服务器在国外环境，访问Binance API和nof1.ai更稳定
-- 🔋 **省心省力** - 专业配置，自动运行，无需担心环境配置和网络问题
-
-### 服务费用
-- 💰 **服务器成本低** - 一个服务器月租仅需40元人民币
-- 🛠️ **部署服务费面议** - 根据具体需求进行配置和部署
-
-### 联系方式
-📱 **有意者请加微信**: `terryso`
-
-> 备注：代部署服务包含完整的环境配置、系统部署、运行测试和使用指导。
-
-## ⚡ 快速开始
+## ⚡ Quick Start
 
 ```bash
-# 1. 安装和构建
+# 1. Install and build
 npm install && npm run build
 
-# 2. 配置环境变量
+# 2. Configure environment variables
 cp .env.example .env
-# 编辑 .env 文件，填入 Binance API 密钥（必须启用合约交易权限）
+# Edit .env file, add your Binance API keys (must enable futures trading)
 
-# 3. 查看可用的AI Agent
+# 3. View available AI Agents
 npm start -- agents
 
-# 4. 开始跟单（风险控制模式，不会真实交易）
+# 4. Test Telegram notifications (optional)
+npm start -- telegram-test
+
+# 5. Start copy trading (risk-only mode, no real trades)
 npm start -- follow deepseek-chat-v3.1 --risk-only
 
-# 5. 持续监控跟单（每30秒检查一次）
+# 6. Continuous monitoring (check every 30 seconds)
 npm start -- follow gpt-5 --interval 30
 
-# 6. 查看盈利统计
+# 7. View profit statistics
 npm start -- profit
 ```
 
-## 🚀 功能特性
+## 🚀 Features
 
-- **🤖 AI Agent跟单**: 支持7个AI量化交易Agent（GPT-5、Gemini、DeepSeek等）
-- **📊 实时监控**: 可配置轮询间隔，持续跟踪Agent交易动作
-- **🔄 智能跟单**: 自动识别开仓、平仓、换仓（OID变化）和止盈止损
-- **🎯 盈利目标退出**: 支持设置自定义盈利目标，达到后自动平仓退出
-- **🔄 自动重新跟单**: 可选的自动重新跟单功能，盈利退出后自动重新入场
-- **⚡ 合约交易**: 完整支持Binance USDT永续合约，支持1x-125x杠杆
-- **📈 盈利统计**: 精确的盈利分析，基于真实交易数据计算（含手续费统计）
-- **🛡️ 风险控制**: 支持`--risk-only`模式，只观察不执行交易
+- **🤖 AI Agent Copy Trading**: Support 7 AI quantitative trading agents (GPT-5, Gemini, DeepSeek, etc.)
+- **📊 Real-time Monitoring**: Configurable polling interval for continuous agent tracking
+- **🔄 Smart Copy Trading**: Auto-detect open, close, switch positions (OID changes), and stop-loss/take-profit
+- **🎯 Profit Target Exit**: Support custom profit targets with automatic position closing when reached
+- **🔄 Auto Refollow**: Optional auto-refollow feature that automatically re-enters after profit target exit
+- **⚡ Futures Trading**: Full support for Binance USDT perpetual futures, 1x-125x leverage
+- **📈 Profit Analysis**: Accurate profit analysis based on real trading data (including fee statistics)
+- **🛡️ Risk Control**: Support `--risk-only` mode for observation without execution
+- **📱 Telegram Notifications**: Real-time Telegram notifications for trade executions and stop-loss/take-profit events
 
-## 📊 实盘跟踪
+## 📱 Telegram Notifications
 
-**deepseek-chat-v3.1 Agent 实盘跟踪面板**: [https://nof1-tracker-dashboard.onrender.com](https://nof1-tracker-dashboard.onrender.com)
+Enable Telegram notifications to receive real-time alerts about your trading activities:
 
-实时查看 deepseek-chat-v3.1 AI Agent 的交易表现、持仓情况和盈亏统计。
+### Features
 
-Dashboard项目地址: https://github.com/terryso/nof1-tracker-dashboard
+- **🔔 Trade Executions**: Get notified when trades are executed (LONG/SHORT positions)
+- **📊 Rich Formatting**: Beautifully formatted messages with emojis and detailed trade information
+- **🎯 Stop Loss & Take Profit**: Alerts when stop-loss or take-profit orders are set
+- **🔐 Security**: Configure via environment variables for secure access
 
-## 🤖 支持的AI Agent
+### Message Format
 
-| Agent名称 |
+Messages include:
+- 📈 Trade direction (LONG/SHORT) with emojis
+- 💰 Quantity and price
+- 🆔 Order ID
+- 📊 Order status
+- ⚡ Leverage information
+- 🔒 Margin type (ISOLATED/CROSSED)
+
+### Example Notifications
+
+```
+✅ Trade Executed
+
+📈 LONG BTCUSDT
+💰 Quantity: 1.5
+💵 Price: 50000.00
+🆔 Order ID: 123456
+📊 Status: FILLED
+⚡ Leverage: 10x
+🔒 Isolated
+```
+
+```
+🎯 Take Profit Order Set
+
+📊 Symbol: BTCUSDT
+💵 Price: 55000.00
+🆔 Order ID: tp123
+```
+
+## 🤖 Supported AI Agents
+
+| Agent Name |
 |----------|
 | **gpt-5** |
 | **gemini-2.5-pro** |
@@ -84,396 +93,448 @@ Dashboard项目地址: https://github.com/terryso/nof1-tracker-dashboard
 | **grok-4** |
 | **qwen3-max** |
 
+## ⚙️ Configuration
 
-## ⚙️ 配置
+### 1. Binance API Key Configuration (Important)
 
-### 1. Binance API 密钥配置（重要）
+This system uses **Binance Futures Trading API**, permissions must be configured correctly:
 
-本系统使用 **Binance 合约交易API**，必须正确配置权限：
+#### Create API Key
+1. Login to [Binance](https://www.binance.com/) → [API Management](https://www.binance.com/en/my/settings/api-management)
+2. Create new API key, complete security verification
 
-#### 创建API密钥
-1. 首先先注册一个币安帐号: https://www.maxweb.red/referral/earn-together/refer2earn-usdc/claim?hl=zh-CN&ref=GRO_28502_ACBRJ&utm_source=default
-2. 登录 [Binance](https://www.binance.com/) → [API Management](https://www.binance.com/en/my/settings/api-management)
-3. 创建新API密钥，完成安全验证
-   
+#### Configure Permissions (Critical)
+- ✅ **Enable Futures** - Enable futures trading (Required)
+- ✅ **Enable Reading** - Enable read permission (Required)
+- ❌ **Enable Withdrawals** - Not needed
 
-#### 配置权限（关键）
-- ✅ **Enable Futures** - 启用合约交易（必选）
-- ✅ **Enable Reading** - 启用读取权限（必选）
-- ❌ **Enable Withdrawals** - 不需要提现权限
-
-#### 测试网环境（推荐新手）
-1. 访问 [Binance Testnet](https://testnet.binancefuture.com/)
-2. 创建测试网API密钥
-3. 在`.env`中设置：
+#### Testnet Environment (Recommended for Beginners)
+1. Visit [Binance Testnet](https://testnet.binancefuture.com/)
+2. Create testnet API key
+3. Set in `.env`:
    ```env
    BINANCE_TESTNET=true
-   BINANCE_API_KEY=测试网API密钥
-   BINANCE_API_SECRET=测试网Secret密钥
+   BINANCE_API_KEY=testnet_api_key
+   BINANCE_API_SECRET=testnet_secret_key
    ```
 
-### 2. 环境变量配置
+### 2. Telegram Notification Setup (Optional)
+
+Set up Telegram notifications to receive real-time trading signals and alerts:
+
+1. **Create a Telegram Bot**:
+   - Open Telegram and search for [@BotFather](https://t.me/BotFather)
+   - Send `/newbot` command and follow the instructions
+   - Save the bot token you receive
+
+2. **Get Your Chat ID**:
+   - Search for your bot in Telegram
+   - Send any message to your bot
+   - Visit `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
+   - Look for `"chat":{"id":<YOUR_CHAT_ID>}`
+
+3. **Configure Environment Variables**:
+   ```env
+   # Telegram Configuration (Optional)
+   TELEGRAM_ENABLED=true
+   TELEGRAM_API_TOKEN=your_telegram_bot_token
+   TELEGRAM_CHAT_ID=your_telegram_chat_id
+   ```
+
+4. **Test Telegram Connection**:
+   ```bash
+   npm start -- telegram-test
+   ```
+
+### 3. Environment Variables
 
 ```env
-# Binance API Configuration - 必须支持合约交易
+# Binance API Configuration - Must support futures trading
 BINANCE_API_KEY=your_binance_api_key_here
 BINANCE_API_SECRET=your_binance_api_secret_here
-BINANCE_TESTNET=true  # true=测试网, false=正式网
+BINANCE_TESTNET=true  # true=testnet, false=mainnet
 
 # Trading Configuration
 MAX_POSITION_SIZE=1000
 DEFAULT_LEVERAGE=10
 RISK_PERCENTAGE=2.0
+
+# Telegram Configuration (Optional)
+TELEGRAM_ENABLED=true
+TELEGRAM_API_TOKEN=your_telegram_bot_token
+TELEGRAM_CHAT_ID=your_telegram_chat_id
 ```
 
-## 📖 使用方法
+## 📖 Usage
 
-### 核心命令
+### Core Commands
 
-#### 1. 查看可用的AI Agent
+#### 1. View Available AI Agents
 ```bash
 npm start -- agents
 ```
 
-#### 2. 跟单AI Agent（核心功能）
+#### 2. Copy Trade AI Agent (Core Feature)
 
-**基础用法**：
+**Basic Usage**:
 ```bash
-# 单次执行
+# Single execution
 npm start -- follow deepseek-chat-v3.1
 
-# 持续监控（每30秒轮询）
+# Continuous monitoring (poll every 30 seconds)
 npm start -- follow gpt-5 --interval 30
 
-# 风险控制模式（只观察不执行）
+# Risk control mode (observe only, no execution)
 npm start -- follow claude-sonnet-4-5 --risk-only
 ```
 
-**高级选项**：
+**Advanced Options**:
 ```bash
-# 设置总保证金（默认10 USDT）
+# Set total margin (default 10 USDT)
 npm start -- follow gpt-5 --total-margin 5000
 
-# 设置价格容差（默认1.0%）
+# Set price tolerance (default 1.0%)
 npm start -- follow deepseek-chat-v3.1 --price-tolerance 1.0
 
-# 盈利目标退出（达到30%盈利时自动平仓）
+# Profit target exit (auto close when 30% profit reached)
 npm start -- follow gpt-5 --profit 30
 
-# 盈利目标退出 + 自动重新跟单
+# Profit target exit + auto refollow
 npm start -- follow deepseek-chat-v3.1 --profit 30 --auto-refollow
 
-# 设置保证金模式（逐仓模式）
-npm start -- follow gpt-5 --margin-type ISOLATED
-
-# 设置保证金模式（全仓模式，默认）
-npm start -- follow deepseek-chat-v3.1 --margin-type CROSSED
-
-# 组合使用
-npm start -- follow gpt-5 --interval 30 --total-margin 2000 --profit 25 --auto-refollow --margin-type ISOLATED
+# Combined usage
+npm start -- follow gpt-5 --interval 30 --total-margin 2000 --profit 25 --auto-refollow
 ```
 
-**命令选项说明**：
-- `-r, --risk-only`: 只评估不执行交易（安全模式）
-- `-i, --interval <seconds>`: 轮询间隔（秒），默认30秒
-- `-t, --price-tolerance <percentage>`: 价格容差百分比，默认1.0%
-- `-m, --total-margin <amount>`: 总保证金（USDT），默认10
-- `--profit <percentage>`: 盈利目标百分比，达到后自动平仓退出
-- `--auto-refollow`: 自动重新跟单，盈利退出后自动重新入场（默认关闭）
-- `--margin-type <type>`: 保证金模式，ISOLATED（逐仓）或 CROSSED（全仓，默认）
+**Command Options**:
+- `-r, --risk-only`: Assess only, no execution (safe mode)
+- `-i, --interval <seconds>`: Polling interval in seconds, default 30
+- `-t, --price-tolerance <percentage>`: Price tolerance percentage, default 1.0%
+- `-m, --total-margin <amount>`: Total margin (USDT), default 10
+- `--profit <percentage>`: Profit target percentage, auto close when reached
+- `--auto-refollow`: Auto refollow after profit target exit (disabled by default)
 
-#### 3. 盈利统计分析
+#### 3. Profit Statistics Analysis
 ```bash
-# 统计跟单开始以来的总盈利（默认包含浮动盈亏）
+# Analyze total profit since copy trading started (includes unrealized P&L by default)
 npm start -- profit
 
-# 统计指定时间范围的盈利
-npm start -- profit --since 7d        # 最近7天
-npm start -- profit --since 2024-01-01 # 从2024年1月1日开始
-npm start -- profit --since 1704067200000 # 使用时间戳
+# Analyze profit for specified time range
+npm start -- profit --since 7d        # Last 7 days
+npm start -- profit --since 2024-01-01 # Since January 1, 2024
+npm start -- profit --since 1704067200000 # Using timestamp
 
-# 指定交易对统计
+# Analyze specific trading pair
 npm start -- profit --pair BTCUSDT
 
-# JSON格式输出
+# JSON format output
 npm start -- profit --format json
 
-# 强制刷新缓存数据
+# Force refresh cached data
 npm start -- profit --refresh
 
-# 包含当前仓位的浮动盈亏（默认行为）
+# Include current positions unrealized P&L (default behavior)
 npm start -- profit
 
-# 仅显示当前仓位的浮动盈亏（不含已实现交易）
+# Show only current positions unrealized P&L (without realized trades)
 npm start -- profit --unrealized-only
 
-# 排除浮动盈亏（仅分析已实现交易）
+# Exclude unrealized P&L from analysis (realized trades only)
 npm start -- profit --exclude-unrealized
 ```
 
-**profit命令选项说明**：
-- `-s, --since <time>`: 时间筛选器，支持"7d"（最近7天）、"2024-01-01"（指定日期）、时间戳格式。不指定则使用order-history.json的创建时间
-- `-p, --pair <symbol>`: 指定交易对（如BTCUSDT）
-- `--group-by <type>`: 分组方式：symbol（按交易对）或all（全部）
-- `--format <type>`: 输出格式：table（表格）或json（JSON）
-- `--refresh`: 强制刷新缓存，获取最新数据
-- `--exclude-unrealized`: 排除当前仓位的浮动盈亏，仅分析已实现交易
-- `--unrealized-only`: 仅显示当前仓位的浮动盈亏
+**Profit Command Options**:
+- `-s, --since <time>`: Time filter, supports "7d" (last 7 days), "2024-01-01" (specific date), timestamp format. If not specified, uses order-history.json creation time
+- `-p, --pair <symbol>`: Specific trading pair (e.g., BTCUSDT)
+- `--group-by <type>`: Group by method: symbol (by trading pair) or all (all)
+- `--format <type>`: Output format: table (table) or json (JSON)
+- `--refresh`: Force refresh cache to get latest data
+- `--exclude-unrealized`: Exclude current positions unrealized P&L from analysis (realized trades only)
+- `--unrealized-only`: Show only current positions unrealized P&L
 
-**输出统计信息**：
-- **基础统计**: 总交易次数、已实现盈亏（扣除手续费）、胜率、平均盈利/亏损
-- **浮动盈亏**: 当前仓位数量、总浮动盈亏、详细仓位信息（默认包含，使用--exclude-unrealized时排除）
-- **总盈亏**: 已实现盈亏 + 浮动盈亏的完整盈利情况
-- **手续费分析**: 总手续费支出、平均每笔手续费
-- **风险指标**: 最大单笔盈利、最大单笔亏损、浮动盈亏风险提示
-- **分组统计**: 按交易对分组的详细盈利情况
+**Output Statistics**:
+- **Basic Statistics**: Total trades, realized profit/loss (including fees), win rate, average profit/loss
+- **Unrealized P&L**: Current positions count, total unrealized P&L, detailed position info (included by default, excluded when using --exclude-unrealized)
+- **Total P&L**: Complete profit situation including realized + unrealized P&L
+- **Fee Analysis**: Total fee expenses, average fee per trade
+- **Risk Metrics**: Maximum single profit, maximum single loss, unrealized P&L risk warnings
+- **Grouped Statistics**: Detailed profit analysis grouped by trading pair
 
-#### 4. 系统状态检查
+#### 4. System Status Check
 ```bash
 npm start -- status
 ```
 
-### 跟单策略说明
+#### 5. Telegram Notification Test
+```bash
+# Test Telegram bot connection and send test message
+npm start -- telegram-test
+```
 
-系统自动识别4种交易信号：
+### Copy Trading Strategy
 
-1. **📈 新开仓 (ENTER)** - Agent开新仓位时自动跟单
-2. **📉 平仓 (EXIT)** - Agent平仓时自动跟单
-3. **🔄 换仓 (OID变化)** - 检测到entry_oid变化时，先平旧仓再开新仓
-4. **🎯 止盈止损** - 价格达到profit_target或stop_loss时自动平仓
+System automatically detects 4 types of trading signals:
 
-### 🎯 盈利目标退出和自动重新跟单
+1. **📈 New Position (ENTER)** - Auto copy when agent opens new position
+2. **📉 Close Position (EXIT)** - Auto copy when agent closes position
+3. **🔄 Switch Position (OID Change)** - Close old position then open new when entry_oid changes
+4. **🎯 Stop Loss/Take Profit** - Auto close when price reaches profit_target or stop_loss
 
-#### 盈利目标退出
-设置自定义盈利目标，当仓位达到指定盈利百分比时自动平仓退出：
+### 🎯 Profit Target Exit and Auto Refollow
+
+#### Profit Target Exit
+Set custom profit targets to automatically close positions when specified profit percentage is reached:
 
 ```bash
-# 当盈利达到30%时自动平仓
+# Auto close when profit reaches 30%
 npm start -- follow gpt-5 --profit 30
 
-# 当盈利达到50%时自动平仓
+# Auto close when profit reaches 50%
 npm start -- follow deepseek-chat-v3.1 --profit 50
 ```
 
-**特点**：
-- ✅ 实时监控每个仓位的盈利百分比
-- ✅ 达到目标后立即执行市价平仓
-- ✅ 支持多头和空头仓位的盈利计算
-- ✅ 完整的盈利退出事件记录
+**Features**:
+- ✅ Real-time monitoring of profit percentage for each position
+- ✅ Immediate market order execution when target is reached
+- ✅ Support for both long and short position profit calculations
+- ✅ Complete profit exit event recording
 
-#### 自动重新跟单
-在盈利退出的基础上，可选择自动重新跟单功能：
+#### Auto Refollow
+Build upon profit exit with optional auto-refollow functionality:
 
 ```bash
-# 盈利30%退出后，自动重新跟单
+# Auto refollow after 30% profit exit
 npm start -- follow gpt-5 --profit 30 --auto-refollow
 
-# 组合使用：持续监控 + 盈利目标 + 自动重新跟单
+# Combined: Continuous monitoring + Profit target + Auto refollow
 npm start -- follow deepseek-chat-v3.1 --interval 30 --profit 25 --auto-refollow
 ```
 
-**工作流程**：
-1. 🔍 检测到仓位盈利达到目标（如30%）
-2. 💰 立即执行市价平仓，锁定盈利
-3. 📝 记录盈利退出事件到历史
-4. 🔄 重置该symbol的订单处理状态
-5. ⏭️ 下个轮询周期检测到OID变化，自动重新跟单
+**Workflow**:
+1. 🔍 Detect position profit reaches target (e.g., 30%)
+2. 💰 Execute immediate market order close to lock profit
+3. 📝 Record profit exit event to history
+4. 🔄 Reset order processing status for that symbol
+5. ⏭️ Next polling cycle detects OID change and auto refollows
 
-**安全特性**：
-- 🛡️ 重新跟单前进行价格容忍度检查
-- 📊 保留agent原始的止盈止损计划
-- 🔄 可选功能，默认关闭避免意外影响
-- 📝 完整的操作日志记录
+**Safety Features**:
+- 🛡️ Price tolerance check before refollowing
+- 📊 Preserve agent's original stop-loss/take-profit plan
+- 🔄 Optional feature, disabled by default to avoid unintended impact
+- 📝 Complete operation logging
 
-**使用建议**：
-- 🎯 保守策略：`--profit 20` （20%盈利退出）
-- ⚖️ 平衡策略：`--profit 30 --auto-refollow` （30%盈利退出并重新跟单）
-- 🚀 积极策略：`--profit 50 --auto-refollow` （50%盈利退出并重新跟单）
+**Usage Recommendations**:
+- 🎯 Conservative: `--profit 20` (20% profit exit)
+- ⚖️ Balanced: `--profit 30 --auto-refollow` (30% profit exit with refollow)
+- 🚀 Aggressive: `--profit 50 --auto-refollow` (50% profit exit with refollow)
 
-### 使用示例
+### Usage Examples
 
-**新手入门**：
+**Beginner Guide**:
 ```bash
-# 1. 检查系统配置
+# 1. Check system configuration
 npm start -- status
 
-# 2. 查看可用Agent
+# 2. View available agents
 npm start -- agents
 
-# 3. 风险控制模式测试
+# 3. Test Telegram notifications (if configured)
+npm start -- telegram-test
+
+# 4. Risk control mode test
 npm start -- follow buynhold_btc --risk-only
 
-# 4. 单次跟单测试
+# 5. Single copy trade test
 npm start -- follow deepseek-chat-v3.1
 
-# 5. 查看盈利统计
+# 6. View profit statistics
 npm start -- profit
 ```
 
-**持续监控**：
+**Continuous Monitoring**:
 ```bash
-# 每30秒检查一次
+# Check every 30 seconds
 npm start -- follow gpt-5 --interval 30
 
-# 多Agent并行监控（不同终端）
+# Multi-agent parallel monitoring (different terminals)
 npm start -- follow gpt-5 --interval 30
 npm start -- follow deepseek-chat-v3.1 --interval 45
 npm start -- follow claude-sonnet-4-5 --interval 60 --risk-only
 ```
 
-**盈利分析**：
+**Profit Analysis**:
 ```bash
-# 查看总盈利情况（默认包含浮动盈亏）
+# View overall profit situation (includes unrealized P&L by default)
 npm start -- profit
 
-# 仅查看已实现盈利（排除浮动盈亏）
+# View only realized profit (exclude unrealized P&L)
 npm start -- profit --exclude-unrealized
 
-# 仅查看当前仓位的浮动盈亏
+# View only current positions unrealized P&L
 npm start -- profit --unrealized-only
 
-# 按不同时间范围分析
-npm start -- profit --since 1d      # 最近1天
-npm start -- profit --since 7d      # 最近1周
-npm start -- profit --since 30d     # 最近1月
+# Analyze different time ranges
+npm start -- profit --since 1d      # Last 1 day
+npm start -- profit --since 7d      # Last 1 week
+npm start -- profit --since 30d     # Last 1 month
 
-# 按交易对分析
+# Analyze by trading pair
 npm start -- profit --pair BTCUSDT --since 7d
 npm start -- profit --pair ETHUSDT --format json
 
-# JSON格式输出（默认包含浮动盈亏）
+# JSON output with unrealized P&L (default)
 npm start -- profit --format json
 
-# 仅浮动盈亏的JSON格式输出
+# JSON output for unrealized P&L only
 npm start -- profit --unrealized-only --format json
 ```
 
-## 📊 架构概览
+## 📊 Architecture Overview
 
 ```
 src/
-├── commands/               # 命令处理器
-│   ├── agents.ts          # 获取AI Agent列表
-│   ├── follow.ts          # 跟单命令（核心）
-│   ├── profit.ts          # 盈利统计分析
-│   └── status.ts          # 系统状态检查
-├── services/              # 核心服务
-│   ├── api-client.ts      # Nof1 API客户端
-│   ├── binance-service.ts # Binance API集成
-│   ├── trading-executor.ts # 交易执行引擎
-│   ├── position-manager.ts # 仓位管理
-│   ├── profit-calculator.ts # 盈利计算引擎
-│   ├── trade-history-service.ts # 交易历史服务
-│   ├── order-history-manager.ts # 订单历史管理
-│   └── futures-capital-manager.ts # 合约资金管理
+├── commands/               # Command handlers
+│   ├── agents.ts          # Get AI agent list
+│   ├── follow.ts          # Copy trade command (core)
+│   ├── profit.ts          # Profit statistics analysis
+│   ├── status.ts          # System status check
+│   └── telegram.ts        # Telegram notification test
+├── services/              # Core services
+│   ├── api-client.ts      # Nof1 API client
+│   ├── binance-service.ts # Binance API integration
+│   ├── trading-executor.ts # Trade execution engine
+│   ├── position-manager.ts # Position management
+│   ├── profit-calculator.ts # Profit calculation engine
+│   ├── trade-history-service.ts # Trade history service
+│   ├── order-history-manager.ts # Order history management
+│   ├── futures-capital-manager.ts # Futures capital management
+│   └── telegram-service.ts # Telegram notification service
 ├── scripts/
-│   └── analyze-api.ts     # API分析引擎（跟单策略）
-├── types/                 # TypeScript类型定义
-├── utils/                 # 工具函数
-└── index.ts               # CLI入口点
+│   └── analyze-api.ts     # API analysis engine (copy trading strategy)
+├── types/                 # TypeScript type definitions
+├── utils/                 # Utility functions
+└── index.ts               # CLI entry point
 ```
 
-**核心流程**：
+**Core Flow**:
 ```
-跟单流程：
-用户命令 → follow命令处理器 → ApiAnalyzer分析Agent信号
+Copy Trading Flow:
+User Command → follow handler → ApiAnalyzer analyzes agent signals
          ↓
-    识别交易动作（开仓/平仓/换仓/止盈止损）
+    Detect trading actions (open/close/switch/stop-loss)
          ↓
-    生成FollowPlan → TradingExecutor执行
+    Generate FollowPlan → TradingExecutor executes
          ↓
-    BinanceService → Binance API → 交易完成
+    BinanceService → Binance API → Trade completed
+         ↓
+    TelegramService sends notification (if enabled)
 
-盈利分析流程：
-用户命令 → profit命令处理器 → TradeHistoryService获取历史交易
+Profit Analysis Flow:
+User Command → profit handler → TradeHistoryService fetches historical trades
          ↓
-    ProfitCalculator计算盈利（基于realizedPnl和手续费）
+    ProfitCalculator calculates profit (based on realizedPnl and fees)
          ↓
-    生成统计报告（基础统计、分组统计、风险指标）
+    Generate statistics report (basic stats, grouped stats, risk metrics)
          ↓
-    输出结果（表格/JSON格式）
+    Output results (table/JSON format)
+
+Telegram Notification Flow:
+Trading Executor → Trade/Order event
+         ↓
+    TelegramService.formatTradeMessage()
+         ↓
+    Send to Telegram API
+         ↓
+    User receives notification
 ```
 
-## ⚠️ 重要提示
+## ⚠️ Important Notes
 
-### 风险提示
+### Risk Warning
 
-- **⚠️ 合约交易风险**: 合约交易使用杠杆，可能导致快速亏损，请谨慎使用
-- **🧪 测试环境**: 强烈建议先在 Binance Testnet 测试
-- **📊 风险管理**: 建议杠杆≤10x，使用专门的交易账户
-- **💡 风险控制模式**: 新手建议先使用`--risk-only`模式观察
-- **📈 跟单风险**: AI Agent的策略不保证盈利，请自行评估风险
+- **⚠️ Futures Trading Risk**: Futures trading uses leverage, may lead to rapid losses, use with caution
+- **🧪 Test Environment**: Strongly recommend testing on Binance Testnet first
+- **📊 Risk Management**: Recommend leverage ≤10x, use dedicated trading account
+- **💡 Risk Control Mode**: Beginners should use `--risk-only` mode first
+- **📈 Copy Trading Risk**: AI Agent strategies do not guarantee profit, assess risks yourself
 
-### 安全建议
+### Security Recommendations
 
-- 设置IP白名单限制访问
-- 定期更换API密钥
-- 不要在代码中硬编码密钥
-- 避免投入无法承受损失的资金
+- Set IP whitelist to restrict access
+- Regularly rotate API keys
+- Never hardcode keys in code
+- Avoid investing funds you cannot afford to lose
 
-## 🔍 故障排除
+## 🔍 Troubleshooting
 
-### 常见问题
+### Common Issues
 
-**1. 合约交易权限不足**
+**1. Insufficient Futures Trading Permission**
 ```
 Error: Insufficient permissions
 ```
-- ✅ 确保在Binance API管理页面启用了 **Enable Futures** 权限
-- ✅ 确保启用了 **Enable Reading** 权限
-- 重新创建API密钥并正确配置权限
+- ✅ Ensure **Enable Futures** permission is enabled in Binance API management
+- ✅ Ensure **Enable Reading** permission is enabled
+- Recreate API key with correct permissions
 
-**2. Agent不存在**
+**2. Agent Not Found**
 ```
 Error: Agent xxx not found
 ```
-- 使用`npm start -- agents`查看可用Agent列表
-- 确认Agent名称拼写正确（区分大小写）
+- Use `npm start -- agents` to view available agent list
+- Confirm agent name spelling is correct (case-sensitive)
 
-**3. 网络连接问题**
+**3. Network Connection Issues**
 ```
 Error: timeout
 ```
-- 检查网络连接和防火墙设置
-- 如果在中国大陆，可能需要使用VPN访问Binance API
+- Check network connection and firewall settings
+- May need VPN to access Binance API in mainland China
 
-**4. API密钥错误**
+**4. API Key Error**
 ```
 Error: Invalid API Key
 ```
-- 检查`.env`文件中的API密钥是否正确
-- 确认API密钥没有过期
-- 验证是否复制了完整的密钥（没有多余空格）
+- Check if API key in `.env` file is correct
+- Confirm API key has not expired
+- Verify complete key is copied (no extra spaces)
 
-## 🔧 开发
+**5. Telegram Notification Issues**
+```
+Error: Failed to send Telegram message
+```
+- ✅ Check if `TELEGRAM_ENABLED=true` in `.env` file
+- ✅ Verify Telegram bot token is correct (from @BotFather)
+- ✅ Verify chat ID is correct (get from bot API)
+- ✅ Test with `npm start -- telegram-test`
+- ✅ Ensure bot has not been blocked or deleted
+- ✅ Check internet connection for Telegram API access
+
+## 🔧 Development
 
 ```bash
-# 运行测试
+# Run tests
 npm test
 
-# 开发模式（自动重启）
+# Development mode (auto-restart)
 npm run dev
 
-# 构建
+# Build
 npm run build
 
-# 代码检查
+# Code check
 npm run lint
 ```
 
-## 📚 更多文档
+## 📚 More Documentation
 
-- **[详细跟单策略文档](./docs/follow-strategy.md)** - 完整的跟单策略和风险评估
-- **[快速参考手册](./docs/quick-reference.md)** - 常用命令快速查询
+- **[Detailed Copy Trading Strategy](./docs/follow-strategy.md)** - Complete copy trading strategy and risk assessment
+- **[Quick Reference](./docs/quick-reference.md)** - Quick command reference
 
-## ⭐ Star History
+## 📄 License
 
-[![Star History Chart](https://api.star-history.com/svg?repos=terryso/nof1-tracker&type=date&legend=top-left)](https://www.star-history.com/#terryso/nof1-tracker&type=date&legend=top-left)
-
-## 📄 许可证
-
-MIT License - 查看 [LICENSE](LICENSE) 文件了解详情
+MIT License - See [LICENSE](LICENSE) file for details
 
 ---
 
-**免责声明**: 本工具仅供学习和测试使用。实际交易存在资金损失风险，请谨慎使用并遵守相关法律法规。
+**Disclaimer**: This tool is for learning and testing purposes only. Actual trading involves risk of capital loss, use with caution and comply with relevant laws and regulations.
