@@ -57,10 +57,10 @@ export class TradingExecutor {
   async validateConnection(): Promise<boolean> {
     try {
       const serverTime = await this.exchangeService.getServerTime();
-      console.log(`✅ Connected to Binance API (Server time: ${new Date(serverTime)})`);
+      console.log(`✅ Connected to ${this.exchangeService.exchangeName} API (Server time: ${new Date(serverTime)})`);
       return true;
     } catch (error) {
-      console.error(`❌ Failed to connect to Binance API: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error(`❌ Failed to connect to ${this.exchangeService.exchangeName} API: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
   }
@@ -98,7 +98,7 @@ export class TradingExecutor {
       if (!isConnected) {
         return {
           success: false,
-          error: "Failed to connect to Binance API"
+          error: `Failed to connect to ${this.exchangeService.exchangeName} API`
         };
       }
 
