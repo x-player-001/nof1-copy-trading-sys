@@ -2,7 +2,7 @@ import { TradingPlan } from "../types/trading";
 import { TelegramService } from "./telegram-service";
 import { BinanceService, StopLossOrder, TakeProfitOrder, OrderResponse as BinanceOrderResponse } from "./binance-service";
 import { ConfigManager } from "./config-manager";
-import { IExchangeService, OrderResponse } from "./exchange-service.interface";
+import { IExchangeService, OrderResponse, OrderParams } from "./exchange-service.interface";
 import { ExchangeFactory } from "./exchange-factory";
 
 export interface ExecutionResult {
@@ -205,8 +205,14 @@ export class TradingExecutor {
         // 继续执行，但记录警告
       }
 
-      // 转换为订单格式（Binance 特定方法）
-      const binanceOrder = (this.binanceService as any).convertToBinanceOrder(tradingPlan);
+      // 创建订单参数（使用通用接口，支持所有交易所）
+      const orderParams: OrderParams = {
+        symbol: tradingPlan.symbol,
+        side: tradingPlan.side,
+        type: tradingPlan.type === "STOP" ? "STOP_MARKET" : tradingPlan.type,
+        quantity: this.exchangeService.formatQuantity(tradingPlan.quantity, tradingPlan.symbol),
+        leverage: tradingPlan.leverage
+      };
 
       // 设置保证金模式
       if (tradingPlan.marginType) {
@@ -237,7 +243,7 @@ export class TradingExecutor {
       }
 
       // 执行主订单
-      const orderResponse = await this.exchangeService.placeOrder(binanceOrder);
+      const orderResponse = await this.exchangeService.placeOrder(orderParams);
 
       console.log(`✅ Order executed successfully:`);
       console.log(`   Order ID: ${orderResponse.orderId}`);
@@ -293,11 +299,57 @@ export class TradingExecutor {
         return mainOrderResult;
       }
 
-      // 2. 创建止盈止损订单（Binance 特定方法）
-      const stopOrders = (this.binanceService as any).createStopOrdersFromPosition(
-        position,
-        tradingPlan.side
-      );
+      // 2. 创建止盈止损订单（使用通用接口，支持所有交易所）
+      const stopOrders: {
+        takeProfitOrder: {
+          symbol: string;
+          side: "BUY" | "SELL";
+          type: "TAKE_PROFIT_MARKET";
+          quantity: string;
+          stopPrice: string;
+          closePosition: string;
+        } | null;
+        stopLossOrder: {
+          symbol: string;
+          side: "BUY" | "SELL";
+          type: "STOP_MARKET";
+          quantity: string;
+          stopPrice: string;
+          closePosition: string;
+        } | null;
+      } = {
+        takeProfitOrder: null,
+        stopLossOrder: null
+      };
+
+      if (position && position.exit_plan) {
+        // 计算止盈止损订单方向（多头仓位用SELL平仓，空头仓位用BUY平仓）
+        const orderSide = tradingPlan.side === "BUY" ? "SELL" : "BUY";
+
+        // 创建止盈订单
+        if (position.exit_plan.profit_target > 0) {
+          stopOrders.takeProfitOrder = {
+            symbol: position.symbol,
+            side: orderSide,
+            type: "TAKE_PROFIT_MARKET",
+            quantity: this.exchangeService.formatQuantity(Math.abs(position.quantity), position.symbol),
+            stopPrice: this.exchangeService.formatPrice(position.exit_plan.profit_target, position.symbol),
+            closePosition: "true"
+          };
+        }
+
+        // 创建止损订单
+        if (position.exit_plan.stop_loss > 0) {
+          stopOrders.stopLossOrder = {
+            symbol: position.symbol,
+            side: orderSide,
+            type: "STOP_MARKET",
+            quantity: this.exchangeService.formatQuantity(Math.abs(position.quantity), position.symbol),
+            stopPrice: this.exchangeService.formatPrice(position.exit_plan.stop_loss, position.symbol),
+            closePosition: "true"
+          };
+        }
+      }
 
       console.log(`🛡️ Setting up stop orders for ${tradingPlan.symbol}:`);
 
